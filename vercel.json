@@ -1,0 +1,25 @@
+{
+  "functions": {
+    "app/**/*.js": {
+      "maxDuration": 120
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/__gtg",
+      "destination": "/404"
+    },
+    {
+      "source": "/__info",
+      "destination": "/404"
+    },
+    {
+      "source": "/flows",
+      "destination": "/404"
+    },
+    {
+      "source": "/flows/:path*",
+      "destination": "/404"
+    }
+  ]
+}
