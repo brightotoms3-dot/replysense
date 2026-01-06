@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: 'ReplySense - AI-Powered Reply Assistant',
+  title: 'Firebase - AI-Powered Reply Assistant',
   description: 'Don’t reply yet. Ask the AI.',
 };
 

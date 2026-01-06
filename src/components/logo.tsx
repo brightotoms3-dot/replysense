@@ -7,7 +7,7 @@ interface LogoProps {
 export default function Logo({ className }: LogoProps) {
   return (
     <h1 className={cn("font-bold tracking-tight text-primary", className)}>
-      ReplySense
+      Firebase
     </h1>
   );
 }
