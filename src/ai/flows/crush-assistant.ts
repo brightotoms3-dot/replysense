@@ -39,8 +39,8 @@ Your task:
   • Not creepy
   • Appropriate for first contact
 
-{{#if naijaVibe}}
-Use light Nigerian slang naturally in your suggestions. For example: "How far?", "Omo", "No wahala".
+{{#if vibe}}
+Use light {{vibe}} slang and cultural references naturally in your suggestions. For example, if the vibe is 'Nigerian', you could use "How far?", "Omo", "No wahala". If the vibe is 'British', you might use "fancy a chat?" or "you alright?".
 {{/if}}
 
 User's crush photo: {{media url=photoDataUri}}
@@ -56,7 +56,13 @@ const getConversationStartersFlow = ai.defineFlow(
     outputSchema: GetConversationStartersOutputSchema,
   },
   async input => {
-    const { output } = await prompt(input);
+    // Don't pass the vibe if it's 'None' or undefined
+    const promptInput = { ...input };
+    if (promptInput.vibe === 'None') {
+      promptInput.vibe = undefined;
+    }
+
+    const { output } = await prompt(promptInput);
     if (!output) {
       throw new Error('The AI model did not return an output.');
     }

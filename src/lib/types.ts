@@ -21,13 +21,15 @@ export type AIResults = GenerateReplySuggestionsOutput;
 
 
 // Crush Assistant Types
+export const VIBES = ['None', 'Nigerian', 'American', 'British', 'Indian'] as const;
+
 export const GetConversationStartersInputSchema = z.object({
   photoDataUri: z
     .string()
     .describe(
       "A photo of a person, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
-  naijaVibe: z.boolean().describe('Whether to use Nigerian slang in the suggestions.'),
+  vibe: z.string().optional().describe('The cultural vibe to use for the suggestions.'),
 });
 export type GetConversationStartersInput = z.infer<typeof GetConversationStartersInputSchema>;
 
@@ -42,7 +44,7 @@ export type GetConversationStartersOutput = z.infer<typeof GetConversationStarte
 
 export const CrushAssistantFormSchema = z.object({
   photo: z.any().refine(file => file, "Please upload a photo."),
-  naijaVibe: z.boolean(),
+  vibe: z.enum(VIBES).optional(),
 });
 
 export type CrushAssistantFormValues = z.infer<typeof CrushAssistantFormSchema>;

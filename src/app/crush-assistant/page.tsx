@@ -12,6 +12,7 @@ import {
   Loader2,
   ThumbsDown,
   ChevronRight,
+  Globe,
 } from 'lucide-react';
 
 import {
@@ -23,11 +24,17 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { createConversationStarters } from '../actions';
-import { CrushAssistantFormSchema, type CrushAssistantFormValues, type CrushAssistantResults } from '@/lib/types';
+import { CrushAssistantFormSchema, VIBES, type CrushAssistantFormValues, type CrushAssistantResults } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 
@@ -46,7 +53,7 @@ export default function CrushAssistantPage() {
     resolver: zodResolver(CrushAssistantFormSchema),
     defaultValues: {
       photo: undefined,
-      naijaVibe: false,
+      vibe: 'None',
     },
   });
 
@@ -119,7 +126,7 @@ export default function CrushAssistantPage() {
     try {
       const response = await createConversationStarters({
         photoDataUri,
-        naijaVibe: values.naijaVibe,
+        vibe: values.vibe,
       });
       if (response) {
         setResults(response);
@@ -212,20 +219,28 @@ export default function CrushAssistantPage() {
 
               <FormField
                 control={form.control}
-                name="naijaVibe"
+                name="vibe"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        Add "Naija Vibe" 🇳🇬
-                      </FormLabel>
-                    </div>
+                  <FormItem>
+                    <FormLabel className="text-lg">Add a cultural vibe (optional)</FormLabel>
+                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="text-base h-12">
+                          <div className="flex items-center gap-3">
+                            <Globe className="w-5 h-5 text-muted-foreground" />
+                            <SelectValue placeholder="Select a vibe" />
+                          </div>
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {VIBES.map((vibe) => (
+                          <SelectItem key={vibe} value={vibe} className="text-base py-2">
+                            {vibe}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
