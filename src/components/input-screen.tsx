@@ -11,6 +11,7 @@ import {
   Smile,
   UploadCloud,
   X,
+  MessageSquareReply
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import Logo from '@/components/logo';
 import { CATEGORIES, type FormValues } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -89,7 +89,8 @@ export default function InputScreen({ form, onSubmit }: InputScreenProps) {
   return (
     <div className="w-full max-w-2xl mx-auto space-y-8 animate-in fade-in-0 duration-500">
       <div className="text-center">
-        <Logo className="text-3xl" />
+        <h1 className="text-3xl font-bold tracking-tight">AI Reply Helper</h1>
+        <p className="text-muted-foreground">Don’t reply yet. Ask the AI.</p>
       </div>
       <Card>
         <CardContent className="p-6">
@@ -203,6 +204,7 @@ export default function InputScreen({ form, onSubmit }: InputScreenProps) {
               />
 
               <Button type="submit" className="w-full text-lg py-6" size="lg" disabled={isSubmitting}>
+                <MessageSquareReply className="mr-2" />
                 Generate Reply
               </Button>
             </form>
