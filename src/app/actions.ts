@@ -8,7 +8,7 @@ import {
   getConversationStarters
 } from "@/ai/flows/crush-assistant";
 import { 
-  CrushAssistantInputSchema,
+  GetConversationStartersInputSchema,
   ReplyFormSchema,
   type GetConversationStartersInput
 } from "@/lib/types";
@@ -30,7 +30,7 @@ export async function generateReplies(input: GenerateReplySuggestionsInput) {
 }
 
 export async function createConversationStarters(input: GetConversationStartersInput) {
-  const validatedInput = CrushAssistantInputSchema.safeParse(input);
+  const validatedInput = GetConversationStartersInputSchema.safeParse(input);
 
   if (!validatedInput.success) {
     throw new Error(`Invalid input: ${validatedInput.error.message}`);
