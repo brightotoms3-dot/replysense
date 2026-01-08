@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageSquareReply, Menu } from 'lucide-react';
+import { MessageSquareReply, Menu, ImageIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import {
 
 const navItems = [
   { href: '/reply-helper', icon: MessageSquareReply, label: 'Reply Helper' },
+  { href: '/graphic-designer', icon: ImageIcon, label: 'Graphic Designer' },
 ];
 
 function NavContent() {
