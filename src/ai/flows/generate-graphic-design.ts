@@ -4,22 +4,10 @@
  * @fileOverview AI flow for generating graphic designs from a text prompt.
  *
  * - generateGraphicDesign - A function that generates an image.
- * - GenerateGraphicDesignInput - The input type for the generateGraphicDesign function.
- * - GenerateGraphicDesignOutput - The return type for the generateGraphicDesign function.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-
-export const GenerateGraphicDesignInputSchema = z.object({
-  prompt: z.string().describe('A detailed description of the graphic design to create.'),
-});
-export type GenerateGraphicDesignInput = z.infer<typeof GenerateGraphicDesignInputSchema>;
-
-export const GenerateGraphicDesignOutputSchema = z.object({
-  imageUrl: z.string().describe('The data URI of the generated image.'),
-});
-export type GenerateGraphicDesignOutput = z.infer<typeof GenerateGraphicDesignOutputSchema>;
+import { GenerateGraphicDesignInputSchema, GenerateGraphicDesignOutputSchema, type GenerateGraphicDesignInput, type GenerateGraphicDesignOutput } from '@/lib/types';
 
 export async function generateGraphicDesign(input: GenerateGraphicDesignInput): Promise<GenerateGraphicDesignOutput> {
   return generateGraphicDesignFlow(input);

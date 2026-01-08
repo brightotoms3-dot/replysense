@@ -6,8 +6,8 @@ import {
 } from "@/ai/flows/generate-reply-suggestions";
 import {
   generateGraphicDesign,
-  type GenerateGraphicDesignInput,
 } from "@/ai/flows/generate-graphic-design";
+import { GenerateGraphicDesignInputSchema, type GenerateGraphicDesignInput } from "@/lib/types";
 import { z } from "zod";
 
 const ReplyActionInputSchema = z.object({
@@ -32,13 +32,8 @@ export async function generateReplies(input: GenerateReplySuggestionsInput) {
   }
 }
 
-
-const GraphicDesignActionInputSchema = z.object({
-  prompt: z.string(),
-});
-
 export async function createGraphicDesign(input: GenerateGraphicDesignInput) {
-  const validatedInput = GraphicDesignActionInputSchema.safeParse(input);
+  const validatedInput = GenerateGraphicDesignInputSchema.safeParse(input);
 
   if (!validatedInput.success) {
     throw new Error(`Invalid input: ${validatedInput.error.message}`);
