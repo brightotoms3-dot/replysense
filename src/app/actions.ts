@@ -5,19 +5,16 @@ import {
   type GenerateReplySuggestionsInput 
 } from "@/ai/flows/generate-reply-suggestions";
 import { 
-  getConversationStarters,
-  type GetConversationStartersInput
+  getConversationStarters
 } from "@/ai/flows/crush-assistant";
-import { z } from "zod";
-
-const ReplyActionInputSchema = z.object({
-  inputText: z.string(),
-  category: z.enum(['Relationship', 'Work / Boss', 'School', 'Family', 'Friends']),
-  screenshotDataUri: z.string().optional(),
-});
+import { 
+  CrushAssistantInputSchema,
+  ReplyFormSchema,
+  type GetConversationStartersInput
+} from "@/lib/types";
 
 export async function generateReplies(input: GenerateReplySuggestionsInput) {
-  const validatedInput = ReplyActionInputSchema.safeParse(input);
+  const validatedInput = ReplyFormSchema.safeParse(input);
 
   if (!validatedInput.success) {
     throw new Error(`Invalid input: ${validatedInput.error.message}`);
@@ -31,12 +28,6 @@ export async function generateReplies(input: GenerateReplySuggestionsInput) {
     throw new Error("Failed to generate replies due to a server error.");
   }
 }
-
-
-const CrushAssistantInputSchema = z.object({
-  photoDataUri: z.string(),
-  naijaVibe: z.boolean(),
-});
 
 export async function createConversationStarters(input: GetConversationStartersInput) {
   const validatedInput = CrushAssistantInputSchema.safeParse(input);
