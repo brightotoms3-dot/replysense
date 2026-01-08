@@ -6,10 +6,9 @@ import {
   type GenerateReplySuggestionsOutput 
 } from "@/ai/flows/generate-reply-suggestions";
 import {
-  generateGameConcept,
-  type GenerateGameConceptInput,
-  type GenerateGameConceptOutput
+  generateGameConcept
 } from "@/ai/flows/generate-game-concept";
+import { type GenerateGameConceptInput, type GenerateGameConceptOutput, GameConceptActionInputSchema } from "@/lib/types";
 import { z } from "zod";
 
 const ReplyActionInputSchema = z.object({
@@ -33,10 +32,6 @@ export async function generateReplies(input: GenerateReplySuggestionsInput): Pro
     throw new Error("Failed to generate replies due to a server error.");
   }
 }
-
-const GameConceptActionInputSchema = z.object({
-    idea: z.string(),
-});
 
 export async function generateGame(input: GenerateGameConceptInput): Promise<GenerateGameConceptOutput> {
     const validatedInput = GameConceptActionInputSchema.safeParse(input);

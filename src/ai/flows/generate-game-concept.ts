@@ -4,24 +4,11 @@
  * @fileOverview AI flow for generating a 3D game concept from a user's idea.
  *
  * - generateGameConcept - A function that takes a user's idea and generates a game concept.
- * - GenerateGameConceptInput - The input type for the generateGameConcept function.
- * - GenerateGameConceptOutput - The return type for the generateGameConcept function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { GenerateGameConceptInputSchema, GenerateGameConceptOutputSchema, type GenerateGameConceptInput, type GenerateGameConceptOutput } from '@/lib/types';
 
-export const GenerateGameConceptInputSchema = z.object({
-  idea: z.string().describe('The user\'s core idea for the 3D game.'),
-});
-export type GenerateGameConceptInput = z.infer<typeof GenerateGameConceptInputSchema>;
-
-export const GenerateGameConceptOutputSchema = z.object({
-  title: z.string().describe('A creative and catchy title for the game.'),
-  pitch: z.string().describe('A one-sentence pitch that summarizes the game.'),
-  description: z.string().describe('A detailed paragraph describing the game concept, including gameplay mechanics, art style, and target audience.'),
-});
-export type GenerateGameConceptOutput = z.infer<typeof GenerateGameConceptOutputSchema>;
 
 export async function generateGameConcept(input: GenerateGameConceptInput): Promise<GenerateGameConceptOutput> {
   return generateGameConceptFlow(input);

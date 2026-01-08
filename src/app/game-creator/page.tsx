@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { generateGame } from '@/app/actions';
-import type { GenerateGameConceptOutput } from '@/ai/flows/generate-game-concept';
+import type { GenerateGameConceptOutput } from '@/lib/types';
 
 const FormSchema = z.object({
   idea: z.string().min(10, 'Please describe your game idea in at least 10 characters.'),
