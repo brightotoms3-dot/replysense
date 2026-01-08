@@ -18,13 +18,3 @@ export const FormSchema = z.object({
 export type FormValues = z.infer<typeof FormSchema>;
 
 export type AIResults = GenerateReplySuggestionsOutput;
-
-export const GenerateGraphicDesignInputSchema = z.object({
-  prompt: z.string().describe('A detailed description of the graphic design to create.'),
-});
-export type GenerateGraphicDesignInput = z.infer<typeof GenerateGraphicDesignInputSchema>;
-
-export const GenerateGraphicDesignOutputSchema = z.object({
-  imageUrl: z.string().describe('The data URI of the generated image.'),
-});
-export type GenerateGraphicDesignOutput = z.infer<typeof GenerateGraphicDesignOutputSchema>;

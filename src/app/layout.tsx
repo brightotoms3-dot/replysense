@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
-import Sidebar from '@/components/sidebar';
+import Logo from '@/components/logo';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -28,10 +28,12 @@ export default function RootLayout({
           inter.variable
         )}
       >
-        <div className="flex min-h-screen">
-          <Sidebar />
+        <div className="flex flex-col min-h-screen">
+          <header className="p-4 border-b">
+            <Logo />
+          </header>
           <main className="flex-1 p-4 sm:p-6 md:p-8">
-            <div className="w-full max-w-4xl mx-auto">
+            <div className="w-full max-w-2xl mx-auto">
               {children}
             </div>
           </main>
