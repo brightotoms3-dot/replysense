@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, MessageSquareReply, Bot, Menu, X } from 'lucide-react';
+import { MessageSquareReply, Menu } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,6 @@ import {
 
 const navItems = [
   { href: '/reply-helper', icon: MessageSquareReply, label: 'Reply Helper' },
-  { href: '/game-creator', icon: Bot, label: 'Game Creator' },
 ];
 
 function NavContent() {

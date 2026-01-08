@@ -18,21 +18,3 @@ export const FormSchema = z.object({
 export type FormValues = z.infer<typeof FormSchema>;
 
 export type AIResults = GenerateReplySuggestionsOutput;
-
-// Game Concept Generation
-export const GenerateGameConceptInputSchema = z.object({
-  idea: z.string().describe("The user's core idea for the 3D game."),
-});
-export type GenerateGameConceptInput = z.infer<typeof GenerateGameConceptInputSchema>;
-
-export const GenerateGameConceptOutputSchema = z.object({
-  title: z.string().describe('A creative and catchy title for the game.'),
-  pitch: z.string().describe('A one-sentence pitch that summarizes the game.'),
-  description: z.string().describe('A detailed paragraph describing the game concept, including gameplay mechanics, art style, and target audience.'),
-  imageUrl: z.string().url().describe('A URL for the generated concept art image.'),
-});
-export type GenerateGameConceptOutput = z.infer<typeof GenerateGameConceptOutputSchema>;
-
-export const GameConceptActionInputSchema = z.object({
-    idea: z.string(),
-});
