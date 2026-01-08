@@ -29,6 +29,7 @@ export const GenerateGameConceptOutputSchema = z.object({
   title: z.string().describe('A creative and catchy title for the game.'),
   pitch: z.string().describe('A one-sentence pitch that summarizes the game.'),
   description: z.string().describe('A detailed paragraph describing the game concept, including gameplay mechanics, art style, and target audience.'),
+  imageUrl: z.string().url().describe('A URL for the generated concept art image.'),
 });
 export type GenerateGameConceptOutput = z.infer<typeof GenerateGameConceptOutputSchema>;
 

@@ -4,15 +4,17 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Wand2, Loader2 } from 'lucide-react';
+import { Wand2, Loader2, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { generateGame } from '@/app/actions';
 import type { GenerateGameConceptOutput } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const FormSchema = z.object({
   idea: z.string().min(10, 'Please describe your game idea in at least 10 characters.'),
@@ -80,7 +82,10 @@ export default function GameCreatorPage() {
               />
               <Button type="submit" className="w-full text-lg py-6" size="lg" disabled={isLoading}>
                 {isLoading ? (
-                  <Loader2 className="animate-spin" />
+                  <>
+                    <Loader2 className="animate-spin" />
+                    Generating...
+                  </>
                 ) : (
                   <>
                     <Wand2 className="mr-2" />
@@ -93,18 +98,37 @@ export default function GameCreatorPage() {
         </CardContent>
       </Card>
 
-      {result && (
+      {isLoading && (
         <Card className="animate-in fade-in-50 duration-500">
           <CardHeader>
-            <CardTitle>{result.title}</CardTitle>
+             <Skeleton className="h-8 w-3/4" />
+             <Skeleton className="h-5 w-1/2" />
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <h3 className="font-semibold">The Pitch</h3>
-              <p className="text-muted-foreground">{result.pitch}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Game Description</h3>
+             <Skeleton className="h-40 w-full" />
+             <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {result && (
+        <Card className="animate-in fade-in-50 duration-500 overflow-hidden">
+          <CardHeader>
+            <CardTitle>{result.title}</CardTitle>
+            <CardDescription>{result.pitch}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {result.imageUrl && (
+              <div className="aspect-video relative rounded-lg border bg-muted flex items-center justify-center">
+                 <Image src={result.imageUrl} alt={`Concept art for ${result.title}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+              </div>
+            )}
+             <div>
+              <h3 className="font-semibold text-lg mb-2">Game Description</h3>
               <p className="text-muted-foreground">{result.description}</p>
             </div>
           </CardContent>
