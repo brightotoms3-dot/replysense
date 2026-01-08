@@ -20,13 +20,14 @@ const generateGraphicDesignFlow = ai.defineFlow(
     outputSchema: GenerateGraphicDesignOutputSchema,
   },
   async ({ prompt }) => {
-    const realisticPrompt = `Create a realistic graphic design as if a professional human designer made it.
+    // Note: The prompt is specifically crafted for a photorealistic style as the model expects it.
+    const photorealisticPrompt = `Create a photorealistic graphic design.
     Prompt: "${prompt}".
     Style: photorealistic, high-resolution, detailed, modern design trends.`;
 
     const { media } = await ai.generate({
       model: 'googleai/imagen-4.0-fast-generate-001',
-      prompt: realisticPrompt,
+      prompt: photorealisticPrompt,
       config: {
         aspectRatio: '1:1',
       },
