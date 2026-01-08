@@ -32,12 +32,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { CATEGORIES, type FormValues } from '@/lib/types';
+import { CATEGORIES, type ReplyFormValues } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 interface InputScreenProps {
-  form: UseFormReturn<FormValues>;
-  onSubmit: (values: FormValues) => void;
+  form: UseFormReturn<ReplyFormValues>;
+  onSubmit: (values: ReplyFormValues) => void;
 }
 
 const categoryIcons: Record<(typeof CATEGORIES)[number], React.ElementType> = {

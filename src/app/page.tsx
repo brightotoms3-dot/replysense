@@ -10,5 +10,9 @@ export default function HomePage() {
     router.replace('/reply-helper');
   }, [router]);
 
-  return null;
+  return (
+    <div className="flex items-center justify-center h-full">
+      <p>Loading...</p>
+    </div>
+  );
 }

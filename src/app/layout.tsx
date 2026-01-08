@@ -4,6 +4,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import Logo from '@/components/logo';
+import Sidebar from '@/components/sidebar';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -28,15 +29,16 @@ export default function RootLayout({
           inter.variable
         )}
       >
-        <div className="flex flex-col min-h-screen">
-          <header className="p-4 border-b">
-            <Logo />
-          </header>
-          <main className="flex-1 p-4 sm:p-6 md:p-8">
-            <div className="w-full max-w-2xl mx-auto">
+        <div className="flex min-h-screen">
+          <Sidebar />
+          <div className="flex flex-col flex-1">
+            <header className="flex h-16 items-center border-b px-6 bg-card">
+              <Logo />
+            </header>
+            <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
               {children}
-            </div>
-          </main>
+            </main>
+          </div>
         </div>
         <Toaster />
       </body>

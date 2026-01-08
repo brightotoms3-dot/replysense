@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { AIResults, FormValues } from '@/lib/types';
-import { FormSchema } from '@/lib/types';
+import type { AIResults, ReplyFormValues } from '@/lib/types';
+import { ReplyFormSchema } from '@/lib/types';
 import { generateReplies } from '../actions';
 import { useUsageLimit } from '@/hooks/use-usage-limit';
 
@@ -27,15 +27,15 @@ type View = "input" | "loading" | "results";
 export default function ReplyHelperPage() {
   const [view, setView] = useState<View>('input');
   const [results, setResults] = useState<AIResults | null>(null);
-  const [lastInput, setLastInput] = useState<FormValues | null>(null);
+  const [lastInput, setLastInput] = useState<ReplyFormValues | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const { isLimitReached, increment, count } = useUsageLimit();
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const { toast } = useToast();
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(FormSchema),
+  const form = useForm<ReplyFormValues>({
+    resolver: zodResolver(ReplyFormSchema),
     defaultValues: {
       inputText: '',
       category: undefined,
@@ -56,7 +56,7 @@ export default function ReplyHelperPage() {
     reader.readAsDataURL(file);
   });
 
-  const handleSubmit = async (values: FormValues) => {
+  const handleSubmit = async (values: ReplyFormValues) => {
     if (isLimitReached()) {
       setShowLimitDialog(true);
       return;
