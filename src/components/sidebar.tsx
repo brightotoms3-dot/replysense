@@ -11,11 +11,20 @@ const navItems = [
   { href: "/crush-assistant", label: "Crush Assistant", icon: Heart },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+}
+
+export default function Sidebar({ isOpen }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 border-r bg-card p-4 flex flex-col">
+    <aside 
+      className={cn(
+        "border-r bg-card p-4 flex flex-col transition-all duration-300 ease-in-out",
+        isOpen ? "w-64" : "w-0 p-0 overflow-hidden"
+      )}
+    >
       <nav className="flex flex-col space-y-2">
         {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
@@ -24,7 +33,7 @@ export default function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary whitespace-nowrap",
                 isActive && "bg-muted text-primary"
               )}
             >

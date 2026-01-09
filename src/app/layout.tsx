@@ -3,8 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
-import Logo from '@/components/logo';
-import Sidebar from '@/components/sidebar';
+import AppShell from '@/components/app-shell';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -29,17 +28,7 @@ export default function RootLayout({
           inter.variable
         )}
       >
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <div className="flex flex-col flex-1">
-            <header className="flex h-16 items-center border-b px-6 bg-card">
-              <Logo />
-            </header>
-            <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
-              {children}
-            </main>
-          </div>
-        </div>
+        <AppShell>{children}</AppShell>
         <Toaster />
       </body>
     </html>
