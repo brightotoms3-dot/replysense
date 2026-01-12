@@ -11,15 +11,7 @@ import { useUsageLimit } from '@/hooks/use-usage-limit';
 import InputScreen from '@/components/input-screen';
 import LoadingScreen from '@/components/loading-screen';
 import ResultsScreen from '@/components/results-screen';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogAction,
-} from '@/components/ui/alert-dialog';
+import PaywallDialog from '@/components/paywall-dialog';
 import { useToast } from '@/hooks/use-toast';
 
 type View = "input" | "loading" | "results";
@@ -30,7 +22,7 @@ export default function ReplyHelperPage() {
   const [lastInput, setLastInput] = useState<ReplyFormValues | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { isLimitReached, increment, count } = useUsageLimit();
+  const { isLimitReached, increment, resetUsage } = useUsageLimit();
   const [showLimitDialog, setShowLimitDialog] = useState(false);
   const { toast } = useToast();
 
@@ -112,6 +104,15 @@ export default function ReplyHelperPage() {
       handleSubmit(lastInput);
     }
   };
+  
+  const handlePaymentSuccess = () => {
+    resetUsage();
+    setShowLimitDialog(false);
+    toast({
+        title: 'Thank you for your support!',
+        description: 'Your daily limit has been reset.',
+    });
+  }
 
   const renderView = () => {
     switch (view) {
@@ -140,19 +141,11 @@ export default function ReplyHelperPage() {
       <div className="w-full max-w-2xl mx-auto">
         {renderView()}
       </div>
-      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Daily Limit Reached</AlertDialogTitle>
-            <AlertDialogDescription>
-              You have used your 3 free reply generations for today. Please come back tomorrow or consider upgrading for unlimited access.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction>Got it</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <PaywallDialog
+        isOpen={showLimitDialog}
+        onClose={() => setShowLimitDialog(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </>
   );
 }

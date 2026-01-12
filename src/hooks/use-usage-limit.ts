@@ -59,10 +59,22 @@ export function useUsageLimit() {
     });
   }, [isInitialized]);
 
+  const resetUsage = useCallback(() => {
+    if (!isInitialized) return;
+    const today = getToday();
+    const newUsage = { count: 0, date: today };
+    setUsage(newUsage);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newUsage));
+    } catch (error) {
+        console.error("Could not write to localStorage:", error);
+    }
+  }, [isInitialized]);
+
   const isLimitReached = useCallback(() => {
     if (!isInitialized) return true; // Block until initialized to be safe
     return usage.count >= USAGE_LIMIT;
   }, [usage.count, isInitialized]);
 
-  return { count: usage.count, increment, isLimitReached };
+  return { count: usage.count, increment, isLimitReached, resetUsage };
 }

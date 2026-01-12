@@ -36,6 +36,8 @@ import { useToast } from '@/hooks/use-toast';
 import { createConversationStarters } from '../actions';
 import { CrushAssistantFormSchema, VIBES, type CrushAssistantFormValues, type CrushAssistantResults } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { useUsageLimit } from '@/hooks/use-usage-limit';
+import PaywallDialog from '@/components/paywall-dialog';
 
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -48,6 +50,9 @@ export default function CrushAssistantPage() {
   const [results, setResults] = useState<CrushAssistantResults | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const { isLimitReached, increment, resetUsage } = useUsageLimit();
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
 
   const form = useForm<CrushAssistantFormValues>({
     resolver: zodResolver(CrushAssistantFormSchema),
@@ -95,6 +100,11 @@ export default function CrushAssistantPage() {
   });
 
   const onSubmit = async (values: CrushAssistantFormValues) => {
+    if (isLimitReached()) {
+      setShowLimitDialog(true);
+      return;
+    }
+
     setIsLoading(true);
     setResults(null);
 
@@ -122,7 +132,6 @@ export default function CrushAssistantPage() {
         return;
     }
 
-
     try {
       const response = await createConversationStarters({
         photoDataUri,
@@ -130,6 +139,7 @@ export default function CrushAssistantPage() {
       });
       if (response) {
         setResults(response);
+        increment();
       } else {
         throw new Error('Received an empty response from the server.');
       }
@@ -144,161 +154,177 @@ export default function CrushAssistantPage() {
       setIsLoading(false);
     }
   };
+  
+  const handlePaymentSuccess = () => {
+    resetUsage();
+    setShowLimitDialog(false);
+    toast({
+        title: 'Thank you for your support!',
+        description: 'Your daily limit has been reset.',
+    });
+  }
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-8 animate-in fade-in-0 duration-500">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight">Crush Assistant</h1>
-        <p className="text-muted-foreground">Slide into the DMs with confidence.</p>
-      </div>
-      <Card>
-        <CardContent className="p-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="photo"
-                render={() => (
-                  <FormItem>
-                    <FormLabel className="text-lg">Upload a photo of your crush</FormLabel>
-                    <FormControl>
-                       <div
-                        className={cn(
-                          'relative flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors',
-                          { 'border-destructive': fileError || form.formState.errors.photo }
-                        )}
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        {preview ? (
-                          <>
-                            <Image
-                              src={preview}
-                              alt="Crush photo preview"
-                              fill
-                              className="object-contain rounded-lg p-2"
-                            />
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="absolute top-2 right-2 bg-background/50 backdrop-blur-sm rounded-full"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                clearFile();
-                                setResults(null);
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                              <span className="sr-only">Remove image</span>
-                            </Button>
-                          </>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center text-muted-foreground">
-                            <UploadCloud className="w-10 h-10 mb-3" />
-                            <p className="mb-2 text-sm">
-                              <span className="font-semibold">Click to upload</span> or drag and drop
-                            </p>
-                            <p className="text-xs">PNG, JPG or WEBP (MAX. 5MB)</p>
-                          </div>
-                        )}
-                        <input
-                          ref={fileInputRef}
-                          id="file-upload"
-                          type="file"
-                          className="hidden"
-                          accept={ACCEPTED_IMAGE_TYPES.join(',')}
-                          onChange={handleFileChange}
-                        />
-                      </div>
-                    </FormControl>
-                    {fileError && <p className="text-sm font-medium text-destructive">{fileError}</p>}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="vibe"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-lg">Add a cultural vibe (optional)</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+    <>
+      <div className="w-full max-w-2xl mx-auto space-y-8 animate-in fade-in-0 duration-500">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold tracking-tight">Crush Assistant</h1>
+          <p className="text-muted-foreground">Slide into the DMs with confidence.</p>
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="photo"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel className="text-lg">Upload a photo of your crush</FormLabel>
                       <FormControl>
-                        <SelectTrigger className="text-base h-12">
-                          <div className="flex items-center gap-3">
-                            <Globe className="w-5 h-5 text-muted-foreground" />
-                            <SelectValue placeholder="Select a vibe" />
-                          </div>
-                        </SelectTrigger>
+                        <div
+                          className={cn(
+                            'relative flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors',
+                            { 'border-destructive': fileError || form.formState.errors.photo }
+                          )}
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          {preview ? (
+                            <>
+                              <Image
+                                src={preview}
+                                alt="Crush photo preview"
+                                fill
+                                className="object-contain rounded-lg p-2"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute top-2 right-2 bg-background/50 backdrop-blur-sm rounded-full"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  clearFile();
+                                  setResults(null);
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                                <span className="sr-only">Remove image</span>
+                              </Button>
+                            </>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center text-muted-foreground">
+                              <UploadCloud className="w-10 h-10 mb-3" />
+                              <p className="mb-2 text-sm">
+                                <span className="font-semibold">Click to upload</span> or drag and drop
+                              </p>
+                              <p className="text-xs">PNG, JPG or WEBP (MAX. 5MB)</p>
+                            </div>
+                          )}
+                          <input
+                            ref={fileInputRef}
+                            id="file-upload"
+                            type="file"
+                            className="hidden"
+                            accept={ACCEPTED_IMAGE_TYPES.join(',')}
+                            onChange={handleFileChange}
+                          />
+                        </div>
                       </FormControl>
-                      <SelectContent>
-                        {VIBES.map((vibe) => (
-                          <SelectItem key={vibe} value={vibe} className="text-base py-2">
-                            {vibe}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      {fileError && <p className="text-sm font-medium text-destructive">{fileError}</p>}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <Button type="submit" className="w-full text-lg py-6" size="lg" disabled={isLoading || !preview}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                   <>
-                    <Sparkles className="mr-2" />
-                    Get Conversation Starters
-                  </>
-                )}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-      
-      {results && (
-        <Card className="animate-in fade-in-0 duration-500">
-          <CardHeader>
-            <CardTitle className="text-2xl">Your Conversation Openers</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6 text-lg">
-            <div className="space-y-2">
-              <h3 className="font-semibold text-primary flex items-center"><Heart className="w-5 h-5 mr-2"/>Friendly Starter</h3>
-              <p className="pl-7">{results.starter1}</p>
-            </div>
-             <div className="space-y-2">
-              <h3 className="font-semibold text-primary flex items-center"><Sparkles className="w-5 h-5 mr-2"/>Playful/Confident Starter</h3>
-              <p className="pl-7">{results.starter2}</p>
-            </div>
-             <div className="space-y-2">
-              <h3 className="font-semibold text-primary flex items-center"><ChevronRight className="w-5 h-5 mr-2"/>Safe & Polite Starter</h3>
-              <p className="pl-7">{results.starter3}</p>
-            </div>
-            <div className="p-4 bg-muted/50 rounded-lg space-y-2">
-                <h3 className="font-semibold text-accent">Tone Advice</h3>
-                <p className="text-base">{results.toneAdvice}</p>
-            </div>
-            <div className="p-4 bg-destructive/10 text-destructive-foreground rounded-lg flex items-start space-x-2">
-                <ThumbsDown className="w-8 h-8 flex-shrink-0 text-destructive"/>
-                <div>
-                  <h3 className="font-semibold">Avoid This</h3>
-                  <p className="text-base">{results.avoidThis}</p>
-                </div>
-            </div>
+                <FormField
+                  control={form.control}
+                  name="vibe"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-lg">Add a cultural vibe (optional)</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="text-base h-12">
+                            <div className="flex items-center gap-3">
+                              <Globe className="w-5 h-5 text-muted-foreground" />
+                              <SelectValue placeholder="Select a vibe" />
+                            </div>
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {VIBES.map((vibe) => (
+                            <SelectItem key={vibe} value={vibe} className="text-base py-2">
+                              {vibe}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button type="submit" className="w-full text-lg py-6" size="lg" disabled={isLoading || !preview}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2" />
+                      Get Conversation Starters
+                    </>
+                  )}
+                </Button>
+              </form>
+            </Form>
           </CardContent>
         </Card>
-      )}
+        
+        {results && (
+          <Card className="animate-in fade-in-0 duration-500">
+            <CardHeader>
+              <CardTitle className="text-2xl">Your Conversation Openers</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6 text-lg">
+              <div className="space-y-2">
+                <h3 className="font-semibold text-primary flex items-center"><Heart className="w-5 h-5 mr-2"/>Friendly Starter</h3>
+                <p className="pl-7">{results.starter1}</p>
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-semibold text-primary flex items-center"><Sparkles className="w-5 h-5 mr-2"/>Playful/Confident Starter</h3>
+                <p className="pl-7">{results.starter2}</p>
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-semibold text-primary flex items-center"><ChevronRight className="w-5 h-5 mr-2"/>Safe & Polite Starter</h3>
+                <p className="pl-7">{results.starter3}</p>
+              </div>
+              <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+                  <h3 className="font-semibold text-accent">Tone Advice</h3>
+                  <p className="text-base">{results.toneAdvice}</p>
+              </div>
+              <div className="p-4 bg-destructive/10 text-destructive-foreground rounded-lg flex items-start space-x-2">
+                  <ThumbsDown className="w-8 h-8 flex-shrink-0 text-destructive"/>
+                  <div>
+                    <h3 className="font-semibold">Avoid This</h3>
+                    <p className="text-base">{results.avoidThis}</p>
+                  </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-       <p className="text-xs text-center text-muted-foreground">
-          AI suggestions only. Always be respectful and use your best judgment.
-      </p>
-    </div>
+        <p className="text-xs text-center text-muted-foreground">
+            AI suggestions only. Always be respectful and use your best judgment.
+        </p>
+      </div>
+      <PaywallDialog
+        isOpen={showLimitDialog}
+        onClose={() => setShowLimitDialog(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
+    </>
   );
 }
