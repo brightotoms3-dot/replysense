@@ -305,12 +305,12 @@ export default function CrushAssistantPage() {
                   <h3 className="font-semibold text-accent">Tone Advice</h3>
                   <p className="text-base">{results.toneAdvice}</p>
               </div>
-              <div className="p-4 bg-destructive/10 text-destructive-foreground rounded-lg flex items-start space-x-2">
-                  <ThumbsDown className="w-8 h-8 flex-shrink-0 text-destructive"/>
-                  <div>
-                    <h3 className="font-semibold">Avoid This</h3>
-                    <p className="text-base">{results.avoidThis}</p>
-                  </div>
+              <div className="p-4 bg-destructive rounded-lg flex items-start space-x-3">
+                <ThumbsDown className="w-8 h-8 flex-shrink-0 text-destructive-foreground mt-1"/>
+                <div className="text-destructive-foreground">
+                  <h3 className="font-semibold">Avoid This</h3>
+                  <p className="text-base opacity-90">{results.avoidThis}</p>
+                </div>
               </div>
             </CardContent>
           </Card>
