@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,6 +13,7 @@ import {
   ThumbsDown,
   ChevronRight,
   Globe,
+  Camera,
 } from 'lucide-react';
 
 import {
@@ -34,11 +35,22 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { createConversationStarters } from '../actions';
-import { CrushAssistantFormSchema, VIBES, type CrushAssistantFormValues, type CrushAssistantResults } from '@/lib/types';
+import {
+  CrushAssistantFormSchema,
+  VIBES,
+  type CrushAssistantFormValues,
+  type CrushAssistantResults,
+} from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useUsageLimit } from '@/hooks/use-usage-limit';
 import PaywallDialog from '@/components/paywall-dialog';
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -54,6 +66,12 @@ export default function CrushAssistantPage() {
   const { isLimitReached, increment, resetUsage } = useUsageLimit();
   const [showLimitDialog, setShowLimitDialog] = useState(false);
 
+  // Camera state
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   const form = useForm<CrushAssistantFormValues>({
     resolver: zodResolver(CrushAssistantFormSchema),
     defaultValues: {
@@ -61,6 +79,45 @@ export default function CrushAssistantPage() {
       vibe: 'None',
     },
   });
+
+  useEffect(() => {
+    // No-op if camera is not open
+    if (!isCameraOpen) {
+      // Reset permission status when dialog is closed
+      setHasCameraPermission(null);
+      return;
+    }
+
+    let stream: MediaStream;
+
+    const getCameraPermission = async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setHasCameraPermission(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Access Denied',
+          description: 'Please allow camera access to use this feature.',
+        });
+      }
+    };
+
+    getCameraPermission();
+
+    // Cleanup function to stop the stream
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [isCameraOpen, toast]);
+
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -91,13 +148,62 @@ export default function CrushAssistantPage() {
       fileInputRef.current.value = '';
     }
   };
+
+  const fileToDataUri = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const dataURLtoFile = (dataurl: string, filename: string): File | null => {
+      const arr = dataurl.split(',');
+      if (arr.length < 2) return null;
+      const match = arr[0].match(/:(.*?);/);
+      if (!match) return null;
+      const mime = match[1];
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new File([u8arr], filename, { type: mime });
+    };
   
-  const fileToDataUri = (file: File) => new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+    const handleCapture = () => {
+      if (!videoRef.current || !canvasRef.current) return;
+  
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+  
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+      canvas.width = width;
+      canvas.height = height;
+  
+      const context = canvas.getContext('2d');
+      context?.drawImage(video, 0, 0, width, height);
+  
+      const dataUri = canvas.toDataURL('image/jpeg');
+      const file = dataURLtoFile(dataUri, 'crush-photo.jpeg');
+  
+      if (file) {
+        setPreview(dataUri);
+        form.setValue('photo', file);
+        setResults(null);
+        setFileError(null);
+        form.clearErrors('photo');
+        setIsCameraOpen(false);
+      } else {
+        toast({
+          title: 'Capture Failed',
+          description: 'Could not capture photo. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    };
 
   const onSubmit = async (values: CrushAssistantFormValues) => {
     if (isLimitReached()) {
@@ -122,14 +228,14 @@ export default function CrushAssistantPage() {
         return;
       }
     } else {
-        // This should not happen due to form validation, but as a safeguard.
-        toast({
-          title: 'No Photo',
-          description: 'Please upload a photo to get started.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-        return;
+      // This should not happen due to form validation, but as a safeguard.
+      toast({
+        title: 'No Photo',
+        description: 'Please upload a photo to get started.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
     }
 
     try {
@@ -144,50 +250,62 @@ export default function CrushAssistantPage() {
         throw new Error('Received an empty response from the server.');
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+      const errorMessage =
+        err instanceof Error ? err.message : 'An unknown error occurred.';
       toast({
         title: 'Generation Failed',
-        description: "Sorry, we couldn't generate suggestions. Please try again.",
+        description:
+          "Sorry, we couldn't generate suggestions. Please try again.",
         variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   const handlePaymentSuccess = () => {
     resetUsage();
     setShowLimitDialog(false);
     toast({
-        title: 'Thank you for your support!',
-        description: 'Your daily limit has been reset.',
+      title: 'Thank you for your support!',
+      description: 'Your daily limit has been reset.',
     });
-  }
+  };
 
   return (
     <>
       <div className="w-full max-w-2xl mx-auto space-y-8 animate-in fade-in-0 duration-500">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight">Crush Assistant</h1>
-          <p className="text-muted-foreground">Slide into the DMs with confidence.</p>
+          <p className="text-muted-foreground">
+            Slide into the DMs with confidence.
+          </p>
         </div>
         <Card>
           <CardContent className="p-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
                 <FormField
                   control={form.control}
                   name="photo"
                   render={() => (
                     <FormItem>
-                      <FormLabel className="text-lg">Upload a photo of your crush</FormLabel>
+                      <FormLabel className="text-lg">
+                        Upload a photo of your crush
+                      </FormLabel>
                       <FormControl>
                         <div
                           className={cn(
                             'relative flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors',
-                            { 'border-destructive': fileError || form.formState.errors.photo }
+                            {
+                              'border-destructive':
+                                fileError || form.formState.errors.photo,
+                            }
                           )}
-                          onClick={() => fileInputRef.current?.click()}
+                          onClick={() => !preview && fileInputRef.current?.click()}
                         >
                           {preview ? (
                             <>
@@ -216,9 +334,32 @@ export default function CrushAssistantPage() {
                             <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center text-muted-foreground">
                               <UploadCloud className="w-10 h-10 mb-3" />
                               <p className="mb-2 text-sm">
-                                <span className="font-semibold">Click to upload</span> or drag and drop
+                                <span className="font-semibold">
+                                  Click to upload
+                                </span>{' '}
+                                or drag and drop
                               </p>
-                              <p className="text-xs">PNG, JPG or WEBP (MAX. 5MB)</p>
+                              <p className="text-xs">
+                                PNG, JPG or WEBP (MAX. 5MB)
+                              </p>
+                              <div className="relative flex items-center my-4 w-full px-8">
+                                <div className="flex-grow border-t border-border"></div>
+                                <span className="flex-shrink mx-4 text-muted-foreground text-xs">
+                                  OR
+                                </span>
+                                <div className="flex-grow border-t border-border"></div>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setIsCameraOpen(true);
+                                }}
+                              >
+                                <Camera className="mr-2" />
+                                Use Camera
+                              </Button>
                             </div>
                           )}
                           <input
@@ -231,7 +372,11 @@ export default function CrushAssistantPage() {
                           />
                         </div>
                       </FormControl>
-                      {fileError && <p className="text-sm font-medium text-destructive">{fileError}</p>}
+                      {fileError && (
+                        <p className="text-sm font-medium text-destructive">
+                          {fileError}
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -242,8 +387,13 @@ export default function CrushAssistantPage() {
                   name="vibe"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-lg">Add a cultural vibe (optional)</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormLabel className="text-lg">
+                        Add a cultural vibe (optional)
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger className="text-base h-12">
                             <div className="flex items-center gap-3">
@@ -254,7 +404,11 @@ export default function CrushAssistantPage() {
                         </FormControl>
                         <SelectContent>
                           {VIBES.map((vibe) => (
-                            <SelectItem key={vibe} value={vibe} className="text-base py-2">
+                            <SelectItem
+                              key={vibe}
+                              value={vibe}
+                              className="text-base py-2"
+                            >
                               {vibe}
                             </SelectItem>
                           ))}
@@ -265,7 +419,12 @@ export default function CrushAssistantPage() {
                   )}
                 />
 
-                <Button type="submit" className="w-full text-lg py-6" size="lg" disabled={isLoading || !preview}>
+                <Button
+                  type="submit"
+                  className="w-full text-lg py-6"
+                  size="lg"
+                  disabled={isLoading || !preview}
+                >
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 animate-spin" />
@@ -282,31 +441,42 @@ export default function CrushAssistantPage() {
             </Form>
           </CardContent>
         </Card>
-        
+
         {results && (
           <Card className="animate-in fade-in-0 duration-500">
             <CardHeader>
-              <CardTitle className="text-2xl">Your Conversation Openers</CardTitle>
+              <CardTitle className="text-2xl">
+                Your Conversation Openers
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 text-lg">
               <div className="space-y-2">
-                <h3 className="font-semibold text-primary flex items-center"><Heart className="w-5 h-5 mr-2"/>Friendly Starter</h3>
+                <h3 className="font-semibold text-primary flex items-center">
+                  <Heart className="w-5 h-5 mr-2" />
+                  Friendly Starter
+                </h3>
                 <p className="pl-7">{results.starter1}</p>
               </div>
               <div className="space-y-2">
-                <h3 className="font-semibold text-primary flex items-center"><Sparkles className="w-5 h-5 mr-2"/>Playful/Confident Starter</h3>
+                <h3 className="font-semibold text-primary flex items-center">
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Playful/Confident Starter
+                </h3>
                 <p className="pl-7">{results.starter2}</p>
               </div>
               <div className="space-y-2">
-                <h3 className="font-semibold text-primary flex items-center"><ChevronRight className="w-5 h-5 mr-2"/>Safe & Polite Starter</h3>
+                <h3 className="font-semibold text-primary flex items-center">
+                  <ChevronRight className="w-5 h-5 mr-2" />
+                  Safe & Polite Starter
+                </h3>
                 <p className="pl-7">{results.starter3}</p>
               </div>
               <div className="p-4 bg-muted/50 rounded-lg space-y-2">
-                  <h3 className="font-semibold text-accent">Tone Advice</h3>
-                  <p className="text-base">{results.toneAdvice}</p>
+                <h3 className="font-semibold text-accent">Tone Advice</h3>
+                <p className="text-base">{results.toneAdvice}</p>
               </div>
               <div className="p-4 bg-destructive rounded-lg flex items-start space-x-3">
-                <ThumbsDown className="w-8 h-8 flex-shrink-0 text-destructive-foreground mt-1"/>
+                <ThumbsDown className="w-8 h-8 flex-shrink-0 text-destructive-foreground mt-1" />
                 <div className="text-destructive-foreground">
                   <h3 className="font-semibold">Avoid This</h3>
                   <p className="text-base opacity-90">{results.avoidThis}</p>
@@ -317,7 +487,7 @@ export default function CrushAssistantPage() {
         )}
 
         <p className="text-xs text-center text-muted-foreground">
-            AI suggestions only. Always be respectful and use your best judgment.
+          AI suggestions only. Always be respectful and use your best judgment.
         </p>
       </div>
       <PaywallDialog
@@ -325,6 +495,46 @@ export default function CrushAssistantPage() {
         onClose={() => setShowLimitDialog(false)}
         onPaymentSuccess={handlePaymentSuccess}
       />
+      <Dialog open={isCameraOpen} onOpenChange={setIsCameraOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Take a photo</DialogTitle>
+          </DialogHeader>
+          {hasCameraPermission === null && (
+            <div className="flex items-center justify-center h-48">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <p className="ml-2">Waiting for camera permission...</p>
+            </div>
+          )}
+          {hasCameraPermission === false && (
+            <Alert variant="destructive">
+              <AlertTitle>Camera Access Required</AlertTitle>
+              <AlertDescription>
+                Please allow camera access to use this feature.
+              </AlertDescription>
+            </Alert>
+          )}
+          {hasCameraPermission && (
+            <div className="space-y-4">
+              <video
+                ref={videoRef}
+                className="w-full aspect-video rounded-md bg-muted"
+                autoPlay
+                muted
+                playsInline
+              />
+              <Button
+                onClick={handleCapture}
+                className="w-full text-lg py-6"
+                size="lg"
+              >
+                <Camera className="mr-2" /> Snap Photo
+              </Button>
+            </div>
+          )}
+          <canvas ref={canvasRef} className="hidden" />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
