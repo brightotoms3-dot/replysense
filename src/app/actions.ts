@@ -16,11 +16,16 @@ import {
   generateDateIdeas,
   type DatePlannerInput,
 } from "@/ai/flows/date-idea-flow";
+import {
+  generateRizzLines,
+  type RizzAssistantInput,
+} from "@/ai/flows/rizz-assistant-flow";
 import { 
   GetConversationStartersInputSchema,
   ReplyFormSchema,
   VibeCheckFormSchema,
   DatePlannerFormSchema,
+  RizzAssistantFormSchema,
 } from "@/lib/types";
 
 export async function generateReplies(input: GenerateReplySuggestionsInput) {
@@ -84,5 +89,21 @@ export async function createDateIdeas(input: DatePlannerInput) {
   } catch (error) {
     console.error("Error in generateDateIdeas flow:", error);
     throw new Error("Failed to generate date ideas due to a server error.");
+  }
+}
+
+export async function generateRizz(input: RizzAssistantInput) {
+  const validatedInput = RizzAssistantFormSchema.safeParse(input);
+
+  if (!validatedInput.success) {
+    throw new Error(`Invalid input: ${validatedInput.error.message}`);
+  }
+
+  try {
+    const output = await generateRizzLines(validatedInput.data);
+    return output;
+  } catch (error) {
+    console.error("Error in generateRizz flow:", error);
+    throw new Error("Failed to generate rizz lines due to a server error.");
   }
 }

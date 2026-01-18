@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageSquareReply, Heart, HeartPulse, CalendarHeart } from "lucide-react";
+import { MessageSquareReply, Heart, HeartPulse, CalendarHeart, Wand2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ const navItems = [
   { href: "/crush-assistant", label: "Crush Assistant", icon: Heart },
   { href: "/vibe-check", label: "Vibe Check", icon: HeartPulse },
   { href: "/date-planner", label: "Date Planner", icon: CalendarHeart },
+  { href: "/rizz-assistant", label: "Rizz Assistant", icon: Wand2 },
 ];
 
 interface SidebarProps {

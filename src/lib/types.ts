@@ -105,3 +105,31 @@ export const DatePlannerOutputSchema = z.object({
 });
 export type DatePlannerOutput = z.infer<typeof DatePlannerOutputSchema>;
 export type DatePlannerResults = DatePlannerOutput;
+
+// Rizz Assistant Types
+export const RIZZ_VIBES = ['Witty', 'Flirty', 'Funny', 'Mysterious', 'Charming', 'Bold'] as const;
+export const RIZZ_SCENARIOS = ['Dating App', 'In-Person (Date)', 'Text / SMS', 'Social Media (DM)'] as const;
+
+export const RizzAssistantInputSchema = z.object({
+  lastMessage: z.string().optional().describe("The last message received from the person."),
+  conversationContext: z.string().optional().describe("A brief summary of the conversation so far."),
+  vibe: z.enum(RIZZ_VIBES),
+  scenario: z.enum(RIZZ_SCENARIOS),
+});
+export type RizzAssistantInput = z.infer<typeof RizzAssistantInputSchema>;
+
+export const RizzAssistantOutputSchema = z.object({
+  suggestion1: z.string().describe("The first line suggestion to woo the person."),
+  suggestion2: z.string().describe("An alternative line suggestion."),
+  explanation: z.string().describe("A brief explanation of the strategy behind the suggested lines."),
+});
+export type RizzAssistantOutput = z.infer<typeof RizzAssistantOutputSchema>;
+export type RizzAssistantResults = RizzAssistantOutput;
+
+export const RizzAssistantFormSchema = z.object({
+  lastMessage: z.string().min(1, 'Please enter the last message you received.'),
+  conversationContext: z.string().optional(),
+  vibe: z.enum(RIZZ_VIBES, { required_error: 'Please select a vibe.' }),
+  scenario: z.enum(RIZZ_SCENARIOS, { required_error: 'Please select a scenario.' }),
+});
+export type RizzAssistantFormValues = z.infer<typeof RizzAssistantFormSchema>;
