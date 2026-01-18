@@ -81,9 +81,7 @@ export default function CrushAssistantPage() {
   });
 
   useEffect(() => {
-    // No-op if camera is not open
     if (!isCameraOpen) {
-      // Reset permission status when dialog is closed
       setHasCameraPermission(null);
       return;
     }
@@ -500,29 +498,32 @@ export default function CrushAssistantPage() {
           <DialogHeader>
             <DialogTitle>Take a photo</DialogTitle>
           </DialogHeader>
-          {hasCameraPermission === null && (
-            <div className="flex items-center justify-center h-48">
-                <Loader2 className="h-8 w-8 animate-spin" />
-                <p className="ml-2">Waiting for camera permission...</p>
-            </div>
-          )}
-          {hasCameraPermission === false && (
-            <Alert variant="destructive">
-              <AlertTitle>Camera Access Required</AlertTitle>
-              <AlertDescription>
-                Please allow camera access to use this feature.
-              </AlertDescription>
-            </Alert>
-          )}
-          {hasCameraPermission && (
-            <div className="space-y-4">
-              <video
-                ref={videoRef}
-                className="w-full aspect-video rounded-md bg-muted"
-                autoPlay
-                muted
-                playsInline
-              />
+          <div className="space-y-4">
+             <video
+              ref={videoRef}
+              className="w-full aspect-video rounded-md bg-muted"
+              autoPlay
+              muted
+              playsInline
+            />
+
+            {hasCameraPermission === null && (
+              <div className="flex items-center justify-center h-10">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <p className="ml-2">Waiting for camera permission...</p>
+              </div>
+            )}
+            
+            {hasCameraPermission === false && (
+              <Alert variant="destructive">
+                <AlertTitle>Camera Access Required</AlertTitle>
+                <AlertDescription>
+                  Please allow camera access to use this feature.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {hasCameraPermission === true && (
               <Button
                 onClick={handleCapture}
                 className="w-full text-lg py-6"
@@ -530,8 +531,8 @@ export default function CrushAssistantPage() {
               >
                 <Camera className="mr-2" /> Snap Photo
               </Button>
-            </div>
-          )}
+            )}
+          </div>
           <canvas ref={canvasRef} className="hidden" />
         </DialogContent>
       </Dialog>
