@@ -56,9 +56,9 @@ export default function PaywallDialog({ isOpen, onClose, onPaymentSuccess }: Pay
               <DialogTitle className="text-2xl text-center">Out of replies 😅</DialogTitle>
               <DialogDescription className="text-center pt-2">
                 Grab small credit and keep the convo flowing.
-                <p className="text-xs text-muted-foreground mt-2">
+                <span className="block text-xs text-muted-foreground mt-2">
                   Most users spend less than ₦500 total.
-                </p>
+                </span>
               </DialogDescription>
             </DialogHeader>
             <Button onClick={handlePayClick} className="w-full py-6 text-lg">
