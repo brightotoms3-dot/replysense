@@ -5,12 +5,22 @@ import {
   type GenerateReplySuggestionsInput 
 } from "@/ai/flows/generate-reply-suggestions";
 import { 
-  getConversationStarters
+  getConversationStarters,
+  type GetConversationStartersInput
 } from "@/ai/flows/crush-assistant";
+import {
+  analyzeConversationVibe,
+  type VibeCheckInput,
+} from "@/ai/flows/vibe-check-flow";
+import {
+  generateDateIdeas,
+  type DatePlannerInput,
+} from "@/ai/flows/date-idea-flow.ts";
 import { 
   GetConversationStartersInputSchema,
   ReplyFormSchema,
-  type GetConversationStartersInput
+  VibeCheckFormSchema,
+  DatePlannerFormSchema,
 } from "@/lib/types";
 
 export async function generateReplies(input: GenerateReplySuggestionsInput) {
@@ -42,5 +52,37 @@ export async function createConversationStarters(input: GetConversationStartersI
   } catch (error) {
     console.error("Error in getConversationStarters flow:", error);
     throw new Error("Failed to generate conversation starters due to a server error.");
+  }
+}
+
+export async function analyzeVibe(input: VibeCheckInput) {
+  const validatedInput = VibeCheckFormSchema.safeParse(input);
+
+  if (!validatedInput.success) {
+    throw new Error(`Invalid input: ${validatedInput.error.message}`);
+  }
+
+  try {
+    const output = await analyzeConversationVibe(validatedInput.data);
+    return output;
+  } catch (error) {
+    console.error("Error in analyzeVibe flow:", error);
+    throw new Error("Failed to analyze vibe due to a server error.");
+  }
+}
+
+export async function createDateIdeas(input: DatePlannerInput) {
+  const validatedInput = DatePlannerFormSchema.safeParse(input);
+
+  if (!validatedInput.success) {
+    throw new Error(`Invalid input: ${validatedInput.error.message}`);
+  }
+
+  try {
+    const output = await generateDateIdeas(validatedInput.data);
+    return output;
+  } catch (error) {
+    console.error("Error in generateDateIdeas flow:", error);
+    throw new Error("Failed to generate date ideas due to a server error.");
   }
 }
