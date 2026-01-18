@@ -22,7 +22,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <Script src="https://pl28510850.effectivegatecpm.com/d0/46/78/d046788551f5517567244d570c6186c6.js" />
+        <Script src="https://pl28410351.effectivegatecpm.com/d0/46/78/d046788551f5517567244d570c6186c6.js" />
       </head>
       <body
         className={cn(
