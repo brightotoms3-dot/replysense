@@ -6,18 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import type { AIResults } from '@/lib/types';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 
 interface ResultsScreenProps {
   results: AIResults;
   onRegenerate: () => void;
   onStartOver: () => void;
-  isRegenerateDisabled: boolean;
 }
 
 interface ReplyCardProps {
@@ -29,7 +22,6 @@ export default function ResultsScreen({
   results,
   onRegenerate,
   onStartOver,
-  isRegenerateDisabled,
 }: ResultsScreenProps) {
   const { toast } = useToast();
 
@@ -114,27 +106,10 @@ export default function ResultsScreen({
         <Button variant="outline" onClick={onStartOver} className="py-6 text-base">
           New Reply
         </Button>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="w-full">
-                <Button 
-                  onClick={onRegenerate} 
-                  className="w-full py-6 text-base" 
-                  disabled={isRegenerateDisabled}
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Regenerate
-                </Button>
-              </div>
-            </TooltipTrigger>
-            {isRegenerateDisabled && (
-              <TooltipContent>
-                <p>Daily limit reached. Pay to unlock more.</p>
-              </TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
+        <Button onClick={onRegenerate} className="w-full py-6 text-base">
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Regenerate
+        </Button>
         <Button variant="secondary" onClick={handleShare} className="py-6 text-base">
           <Share2 className="mr-2 h-4 w-4" />
           Share

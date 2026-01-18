@@ -42,8 +42,6 @@ import {
   type CrushAssistantResults,
 } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { useUsageLimit } from '@/hooks/use-usage-limit';
-import PaywallDialog from '@/components/paywall-dialog';
 import {
   Dialog,
   DialogContent,
@@ -62,9 +60,6 @@ export default function CrushAssistantPage() {
   const [results, setResults] = useState<CrushAssistantResults | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-
-  const { isLimitReached, increment, resetUsage } = useUsageLimit();
-  const [showLimitDialog, setShowLimitDialog] = useState(false);
 
   // Camera state
   const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -204,11 +199,6 @@ export default function CrushAssistantPage() {
     };
 
   const onSubmit = async (values: CrushAssistantFormValues) => {
-    if (isLimitReached()) {
-      setShowLimitDialog(true);
-      return;
-    }
-
     setIsLoading(true);
     setResults(null);
 
@@ -243,7 +233,6 @@ export default function CrushAssistantPage() {
       });
       if (response) {
         setResults(response);
-        increment();
       } else {
         throw new Error('Received an empty response from the server.');
       }
@@ -259,15 +248,6 @@ export default function CrushAssistantPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handlePaymentSuccess = () => {
-    resetUsage();
-    setShowLimitDialog(false);
-    toast({
-      title: 'Thank you for your support!',
-      description: 'Your daily limit has been reset.',
-    });
   };
 
   return (
@@ -473,9 +453,9 @@ export default function CrushAssistantPage() {
                 <h3 className="font-semibold text-accent">Tone Advice</h3>
                 <p className="text-base">{results.toneAdvice}</p>
               </div>
-              <div className="p-4 bg-destructive rounded-lg flex items-start space-x-3">
-                <ThumbsDown className="w-8 h-8 flex-shrink-0 text-destructive-foreground mt-1" />
-                <div className="text-destructive-foreground">
+              <div className="p-4 bg-destructive rounded-lg flex items-start space-x-3 text-destructive-foreground">
+                <ThumbsDown className="w-8 h-8 flex-shrink-0 mt-1" />
+                <div>
                   <h3 className="font-semibold">Avoid This</h3>
                   <p className="text-base opacity-90">{results.avoidThis}</p>
                 </div>
@@ -488,11 +468,6 @@ export default function CrushAssistantPage() {
           AI suggestions only. Always be respectful and use your best judgment.
         </p>
       </div>
-      <PaywallDialog
-        isOpen={showLimitDialog}
-        onClose={() => setShowLimitDialog(false)}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
       <Dialog open={isCameraOpen} onOpenChange={setIsCameraOpen}>
         <DialogContent>
           <DialogHeader>

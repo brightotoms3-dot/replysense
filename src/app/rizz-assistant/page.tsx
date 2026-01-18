@@ -38,16 +38,12 @@ import {
   type RizzAssistantResults,
 } from '@/lib/types';
 import { generateRizz } from '../actions';
-import { useUsageLimit } from '@/hooks/use-usage-limit';
-import PaywallDialog from '@/components/paywall-dialog';
 import { useToast } from '@/hooks/use-toast';
 
 export default function RizzAssistantPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<RizzAssistantResults | null>(null);
   const { toast } = useToast();
-  const { isLimitReached, increment, resetUsage } = useUsageLimit();
-  const [showLimitDialog, setShowLimitDialog] = useState(false);
 
   const form = useForm<RizzAssistantFormValues>({
     resolver: zodResolver(RizzAssistantFormSchema),
@@ -60,11 +56,6 @@ export default function RizzAssistantPage() {
   });
 
   const onSubmit = async (values: RizzAssistantFormValues) => {
-    if (isLimitReached()) {
-      setShowLimitDialog(true);
-      return;
-    }
-
     setIsLoading(true);
     setResults(null);
 
@@ -72,7 +63,6 @@ export default function RizzAssistantPage() {
       const response = await generateRizz(values);
       if (response) {
         setResults(response);
-        increment();
       } else {
         throw new Error('Received an empty response from the server.');
       }
@@ -85,15 +75,6 @@ export default function RizzAssistantPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handlePaymentSuccess = () => {
-    resetUsage();
-    setShowLimitDialog(false);
-    toast({
-      title: 'Thank you for your support!',
-      description: 'Your daily limit has been reset.',
-    });
   };
   
   const handleStartOver = () => {
@@ -287,11 +268,6 @@ export default function RizzAssistantPage() {
           AI suggestions only. Always be respectful and use your best judgment.
         </p>
       </div>
-      <PaywallDialog
-        isOpen={showLimitDialog}
-        onClose={() => setShowLimitDialog(false)}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
     </>
   );
 }

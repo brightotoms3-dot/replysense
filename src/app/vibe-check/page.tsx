@@ -9,7 +9,6 @@ import {
   type VibeCheckResults,
 } from '@/lib/types';
 import { analyzeVibe } from '../actions';
-import { useUsageLimit } from '@/hooks/use-usage-limit';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -26,7 +25,6 @@ import { UploadCloud, X, Loader2, HeartPulse, Lightbulb, Forward, Sparkles, Rota
 import Image from 'next/image';
 
 import LoadingScreen from '@/components/loading-screen';
-import PaywallDialog from '@/components/paywall-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -41,8 +39,6 @@ export default function VibeCheckPage() {
   const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { isLimitReached, increment, resetUsage } = useUsageLimit();
-  const [showLimitDialog, setShowLimitDialog] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<VibeCheckFormValues>({
@@ -89,11 +85,6 @@ export default function VibeCheckPage() {
   });
 
   const handleSubmit = async (values: VibeCheckFormValues) => {
-    if (isLimitReached()) {
-      setShowLimitDialog(true);
-      return;
-    }
-
     setIsLoading(true);
     setResults(null);
 
@@ -119,7 +110,6 @@ export default function VibeCheckPage() {
       });
       if (response) {
         setResults(response);
-        increment();
       } else {
         throw new Error("Received an empty response from the server.");
       }
@@ -138,15 +128,6 @@ export default function VibeCheckPage() {
     form.reset();
     setResults(null);
     clearFile();
-  };
-
-  const handlePaymentSuccess = () => {
-    resetUsage();
-    setShowLimitDialog(false);
-    toast({
-      title: 'Thank you for your support!',
-      description: 'Your daily limit has been reset.',
-    });
   };
 
   if (isLoading) {
@@ -300,11 +281,6 @@ export default function VibeCheckPage() {
           AI analysis is a guide, not a judgment.
         </p>
       </div>
-      <PaywallDialog
-        isOpen={showLimitDialog}
-        onClose={() => setShowLimitDialog(false)}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
     </>
   );
 }

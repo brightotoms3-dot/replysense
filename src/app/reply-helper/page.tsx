@@ -6,12 +6,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { AIResults, ReplyFormValues } from '@/lib/types';
 import { ReplyFormSchema } from '@/lib/types';
 import { generateReplies } from '../actions';
-import { useUsageLimit } from '@/hooks/use-usage-limit';
 
 import InputScreen from '@/components/input-screen';
 import LoadingScreen from '@/components/loading-screen';
 import ResultsScreen from '@/components/results-screen';
-import PaywallDialog from '@/components/paywall-dialog';
 import { useToast } from '@/hooks/use-toast';
 
 type View = "input" | "loading" | "results";
@@ -22,8 +20,6 @@ export default function ReplyHelperPage() {
   const [lastInput, setLastInput] = useState<ReplyFormValues | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { isLimitReached, increment, resetUsage } = useUsageLimit();
-  const [showLimitDialog, setShowLimitDialog] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<ReplyFormValues>({
@@ -49,11 +45,6 @@ export default function ReplyHelperPage() {
   });
 
   const handleSubmit = async (values: ReplyFormValues) => {
-    if (isLimitReached()) {
-      setShowLimitDialog(true);
-      return;
-    }
-
     setView('loading');
     setLastInput(values);
     
@@ -81,7 +72,6 @@ export default function ReplyHelperPage() {
       });
       if (response) {
         setResults(response);
-        increment();
         setView('results');
         setError(null);
       } else {
@@ -105,15 +95,6 @@ export default function ReplyHelperPage() {
     }
   };
   
-  const handlePaymentSuccess = () => {
-    resetUsage();
-    setShowLimitDialog(false);
-    toast({
-        title: 'Thank you for your support!',
-        description: 'Your daily limit has been reset.',
-    });
-  }
-
   const renderView = () => {
     switch (view) {
       case 'input':
@@ -127,7 +108,6 @@ export default function ReplyHelperPage() {
               results={results}
               onRegenerate={handleRegenerate}
               onStartOver={handleStartOver}
-              isRegenerateDisabled={isLimitReached()}
             />
           )
         );
@@ -141,11 +121,6 @@ export default function ReplyHelperPage() {
       <div className="w-full max-w-2xl mx-auto">
         {renderView()}
       </div>
-      <PaywallDialog
-        isOpen={showLimitDialog}
-        onClose={() => setShowLimitDialog(false)}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
     </>
   );
 }
