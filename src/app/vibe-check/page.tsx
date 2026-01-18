@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -39,7 +39,7 @@ export default function VibeCheckPage() {
   const [results, setResults] = useState<VibeCheckResults | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { isLimitReached, increment, resetUsage } = useUsageLimit();
   const [showLimitDialog, setShowLimitDialog] = useState(false);
