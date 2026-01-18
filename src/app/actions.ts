@@ -15,7 +15,7 @@ import {
 import {
   generateDateIdeas,
   type DatePlannerInput,
-} from "@/ai/flows/date-idea-flow.ts";
+} from "@/ai/flows/date-idea-flow";
 import { 
   GetConversationStartersInputSchema,
   ReplyFormSchema,
